@@ -1,236 +1,131 @@
-/* Copyright (C) 2018, Derrick Greenspan and 		*
- * the University of Central Florida 			*
- * Licensed under the terms of the MIT License. 	*
- * Please see the LICENSE file for more information 	 */
+/* Copyright (C) 2018, Derrick Greenspan and
+ * the University of Central Florida
+ * Licensed under the terms of the MIT License.
+ * Please see the LICENSE file for more information.
+ *
+ * Skeleton Author: Adrian Sampson
+ * Portions (C) 2015 and Licensed under the MIT License*/
 
-/*  Skeleton Author: Adrian Sampson 			*
- * Portions (C) 2015 and Licensed under the MIT License */
-
-#include <llvm/Pass.h>
+#include "llvm/IR/PassManager.h"
+#include <llvm/Analysis/BlockFrequencyInfo.h>
+#include <llvm/Analysis/BranchProbabilityInfo.h>
+#include <llvm/Analysis/LoopInfo.h>
 #include <llvm/IR/Function.h>
-#include <llvm/IR/Value.h>
-#include <llvm-c/Core.h> 
-#include <llvm/PassSupport.h>
-#include <llvm/Transforms/Scalar/LoopRotation.h>
-#include <llvm/Transforms/Scalar.h>
-#include <llvm/Transforms/Scalar/LoopPassManager.h>
-#include <llvm/Transforms/Utils/LoopUtils.h>
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Transforms/Scalar/LoopUnrollPass.h>
-#include <llvm/IR/LegacyPassManager.h>
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/InstrTypes.h>
+#include <llvm/Pass.h>
+#include <llvm/Passes/PassBuilder.h>
+#include <llvm/Passes/PassPlugin.h>
+#include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
-#include <llvm/Analysis/MemoryLocation.h>
-#include <llvm/Analysis/LoopInfo.h>
-#include <llvm/Transforms/Scalar/IndVarSimplify.h>
+#include <llvm/Transforms/Utils/LoopUtils.h>
 
 using namespace llvm;
 
 namespace {
-	int iterator = 0;
-	struct funcValue
-	{
-		Value *func;
-		Value *memValue;
-		int uses = 0;
-		bool visited = false;
-    int id;
-		IRBuilderBase::InsertPoint IP;
-		Instruction *declaredOp;
 
-	};
-	int findFunc(funcValue *ptr, Value *func);
-
-	Instruction * iterateInsertPoints(funcValue *ptr, int position)
-	{
-		return ptr[position].declaredOp;
-	}
-
-	funcValue *addFunc(funcValue *ptr, Value *func, Instruction *declaredOp)
-	{
-		funcValue *retFunc = (funcValue *) realloc(ptr, sizeof(funcValue) * (iterator + 1));
-		retFunc[iterator].func = func; 
-		retFunc[iterator].declaredOp = declaredOp;
-		retFunc[iterator].uses = 0;
-    retFunc[iterator].id = iterator;
-		iterator++;
-		return retFunc;
-	}
-
-	bool isInUsers(Instruction *Bi, Instruction *whichOne,  Value *PtrOp)
-	{
-		/*  If Instruction is part of the user list of vals */
-		for(auto U : PtrOp->users())
-		{
-			if(auto *I = dyn_cast<Instruction>(U))
-			{
-				if(I == Bi)
-					return true;
-			}
-		}
-		return false;
-
-	}
-
-	int funcValExists(funcValue *ptr, Value *func)
-	{
-		int ret = findFunc(ptr, func);
-		return ret;
-	}
-
-	int findFunc(funcValue *ptr, Value *func)
-	{
-		int i;
-		Value *compFunc = func;
-		for(i = 0; i < iterator; i++)
-		{
-
-			if(isa<BitCastInst>(func))
-				compFunc = cast<BitCastInst>(func)->getOperand(0);
-
-			if(ptr[i].func == compFunc)
-			{
-				return i;
-			}
-		}
-		/*  Value was not found */
-		return -1;
-	}
-
-
-
-  struct llamaPass : public FunctionPass {
-    static char ID;
-    llamaPass() : FunctionPass(ID) {}
-
-
-    virtual bool runOnFunction(llvm::Function &F) {
-	    LoopInfo &LI = getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
-	    
-	    LLVMContext &context = F.getContext();
-	    funcValue * values = (funcValue *) calloc(sizeof(funcValue), 1);
-	    funcValue value;
-	    IRBuilder<> builder();
-	    Instruction *theOp;
-
-      for (auto &B : F) 
-      {
-	        for (auto &I : B) 
-		{
-			auto op = &I;
-			theOp = op;
-			Value *retValue;
-			if(isa<CallInst>(I))
-			{
-				if((cast<CallInst>(I).getCalledFunction()->getName()).equals("_internal_calloc")
-				|| (cast<CallInst>(I).getCalledFunction()->getName()).equals("_internal_malloc")
-				|| (cast<CallInst>(I).getCalledFunction()->getName()).equals("_internal_realloc")
-				|| (cast<CallInst>(I).getCalledFunction()->getName()).equals("_internal__mm_malloc"))
-				{
-					IRBuilder<> builder(op);
-					/*  For each allocation via calloc, malloc, realloc, get the 
-					 *  insert point, the value (for the store ptr later),  */
-					values = addFunc(values, &(cast<Value>(I)), op);
-				}
-			} /* After a call inst, a store inst is performed. */
-			if(isa<StoreInst>(I))
-			{
-				Value *ValOp = cast<StoreInst>(I).getValueOperand();
-				Value *ptrOp = cast<StoreInst>(I).getPointerOperand();
-					
-				int pos = funcValExists(values, ValOp);
-				int val = 0;
-				if(pos != -1)
-				{
-					for (auto U : ptrOp->users())
-				        {   
-						values[pos].uses++;
-						if(auto *I = dyn_cast<Instruction>(U))
-				                {   
-							int differential = 0, loopDepth = 0;
-							if(int depth = LI.getLoopDepth(I->getParent()))
-							{
-								loopDepth = depth;
-								differential = 15;
-								bool activate = false;
-								BasicBlock *BB = I->getParent();
-								for(auto &in : *BB)
-								{
-									if(!activate && in.isIdenticalTo(I))
-										activate = true;
-									else if(activate && in.isIdenticalTo(I))
-										activate = false;
-									else if(activate)
-									{
-										differential--;
-									}
-								}
-								int not_used = 0, used = 0;
-							}
-							val += pow(std::max(differential,0), loopDepth * 2);
-				                }   
-				        }   
-
-					/*  If we allocated the value referenced by the operand via calloc, malloc, or realloc,
-					 *  count the number of times the pointer operand is used */
-					values[pos].uses += val;
-					
-				}
-
-			}
-
-      		}
-      /*  Now we insert the uses.. */
-
-      	int i;
-      	for(i=0; i < iterator; i++)
-	{
-
-    fprintf(stderr, "Site: %d\n", values[i].id);
-		IRBuilder<> builder(theOp);
-		builder.SetInsertPoint(values[i].declaredOp);
-		std::vector<Type*> paramTypes = {Type::getInt64Ty(context), Type::getInt32Ty(context)};
-		Type *retType = Type::getVoidTy(context);
-		FunctionType *LLVMScoreType = FunctionType::get(retType, paramTypes, false);
-		Constant *LLVMScoreFunc = F.getParent()->getOrInsertFunction("setLLVMScore",  LLVMScoreType);
-		Value *args_LLVMScore[] = {ConstantInt::get(Type::getInt64Ty(context), values[i].uses),
-                               ConstantInt::get(Type::getInt32Ty(context), i)};
-		builder.CreateCall(LLVMScoreFunc, args_LLVMScore);
-      }
-	iterator = 0;
-      	free(values);
-	values = (funcValue *) calloc(sizeof(funcValue), 1);
-      }
-
-      	return true;
-
-}
-	void getAnalysisUsage(AnalysisUsage &AU) const 
-{ 
-		AU.addRequired<LoopInfoWrapperPass>(); 
-		AU.setPreservesAll (); 
-	} 
+struct FuncValue {
+  Value *func;
+  Value *memValue;
+  int uses = 0;
+  bool visited = false;
+  int id;
+  Instruction *declaredOp;
 };
+
+class LlamaPass : public PassInfoMixin<LlamaPass> {
+public:
+  PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
+    LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
+    BranchProbabilityInfo &BPI = FAM.getResult<BranchProbabilityAnalysis>(F);
+
+    LLVMContext &Context = F.getContext();
+    std::vector<FuncValue> values;
+    IRBuilder<> Builder(Context);
+
+    // Collect frequent paths
+    std::set<BasicBlock *> FrequentPaths;
+    std::map<BasicBlock *, float> BranchFrequencies;
+
+    for (auto &BB : F) {
+      if (auto *BI = dyn_cast<BranchInst>(BB.getTerminator())) {
+        for (unsigned i = 0; i < BI->getNumSuccessors(); ++i) {
+          BasicBlock *Succ = BI->getSuccessor(i);
+          BranchProbability Prob = BPI.getEdgeProbability(&BB, Succ);
+          if (Prob >= BranchProbability::getBranchProbability(8, 10)) {
+            FrequentPaths.insert(Succ);
+            BranchFrequencies[Succ] =
+                static_cast<float>(Prob.getNumerator()) / Prob.getDenominator();
+          }
+        }
+      }
+    }
+
+    // Analyze allocations and uses
+    for (auto &BB : F) {
+      for (auto &I : BB) {
+        if (auto *Call = dyn_cast<CallInst>(&I)) {
+          auto *CalledFunc = Call->getCalledFunction();
+          if (CalledFunc &&
+              (CalledFunc->getName().starts_with("_internal_malloc") ||
+               CalledFunc->getName().starts_with("_internal_calloc") ||
+               CalledFunc->getName().starts_with("_internal_realloc")||
+               CalledFunc->getName().starts_with("_internal__mm_malloc"))) {
+            values.push_back(
+                {Call, nullptr, 0, false, static_cast<int>(values.size()), &I});
+          }
+        }
+
+        if (auto *Store = dyn_cast<StoreInst>(&I)) {
+          Value *StoredValue = Store->getValueOperand();
+          Value *PointerOperand = Store->getPointerOperand();
+
+          for (auto &Val : values) {
+            if (Val.func == StoredValue) {
+              Val.uses++;
+              if (int Depth = LI.getLoopDepth(Store->getParent())) {
+                Val.uses += 15 * Depth * Depth;
+              }
+              Val.uses *= BranchFrequencies[&BB];
+            }
+          }
+        }
+      }
+    }
+
+    // Insert calls to the scoring function
+    for (auto &Val : values) {
+      Builder.SetInsertPoint(Val.declaredOp);
+      FunctionType *ScoreFuncType = FunctionType::get(
+          Type::getVoidTy(Context),
+          {Type::getInt64Ty(Context), Type::getInt32Ty(Context)}, false);
+      FunctionCallee ScoreFunc =
+          F.getParent()->getOrInsertFunction("setLLVMScore", ScoreFuncType);
+
+      Value *Args[] = {ConstantInt::get(Type::getInt64Ty(Context), Val.uses),
+                       ConstantInt::get(Type::getInt32Ty(Context), Val.id)};
+
+      Builder.CreateCall(ScoreFunc, Args);
+    }
+
+    return PreservedAnalyses::all();
+  }
+};
+
+} // namespace
+
+extern "C" ::llvm::PassPluginLibraryInfo LLVM_ATTRIBUTE_WEAK
+llvmGetPassPluginInfo() {
+  return {LLVM_PLUGIN_API_VERSION, "LlamaPass", LLVM_VERSION_STRING,
+          [](PassBuilder &PB) {
+            PB.registerPipelineParsingCallback(
+                [](StringRef Name, FunctionPassManager &FPM,
+                   ArrayRef<PassBuilder::PipelineElement>) {
+                  if (Name == "llama-pass") {
+                    FPM.addPass(LlamaPass());
+                    return true;
+                  }
+                  return false;
+                });
+          }};
 }
-
-
-// Automatically enable the pass.
-// http://adriansampson.net/blog/clangpass.html
-static void registerllamaPass(const PassManagerBuilder &,
-                         legacy::PassManagerBase &PM) {
-	auto LR = createLoopRotatePass();
-  PM.add(LR);
-  PM.add(new llamaPass());
-}
-
-static RegisterStandardPasses
-  RegisterMyPass(PassManagerBuilder::EP_EarlyAsPossible,
-                 registerllamaPass);
-
-
-char llamaPass::ID = 0;
-static RegisterPass<llamaPass> X("llama", "llama llama",
-		false, false);
