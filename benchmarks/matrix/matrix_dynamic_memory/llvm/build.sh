@@ -1,6 +1,6 @@
 #!/bin/bash
 ml clang
-ml cmake/cmake-3.7.2-gcc-7.1.0
+ml cmake/latest
 
 mkdir -p ../build/
 cd ../build/

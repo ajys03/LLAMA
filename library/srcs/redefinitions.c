@@ -4,8 +4,10 @@
  * Please see the LICENSE file for more information 	*/
 
 #include "redefinitions.h"
+#ifdef __linux__
 #include <numa.h>
 #include <numaif.h>
+#endif
 #include <sys/mman.h>
 
 void *mlm_malloc(size_t size, int level)
