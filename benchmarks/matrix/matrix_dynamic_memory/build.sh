@@ -2,7 +2,7 @@
 
 clang -emit-llvm -S matrix.c -o simple.bc
 opt -S -loop-rotate < simple.bc > simple2.bc
-# opt -S -load build/libllamaPass.so -llama < simple2.bc > simple3.bc
+opt -S -load /Users/annyw/Desktop/Computer/LLAMA/build/libllamaPass.so -llama < simple2.bc > simple3.bc
 # llc -filetype=obj simple3.bc
 # #clang simple3.o library/llama.a -o matrix_0
 # clang simple3.o library/0.a -o matrix_0
