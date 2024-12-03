@@ -38,27 +38,19 @@ public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
     LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
     BranchProbabilityInfo &BPI = FAM.getResult<BranchProbabilityAnalysis>(F);
+    llvm::BlockFrequencyAnalysis::Result &bfi = FAM.getResult<BlockFrequencyAnalysis>(F);
 
     LLVMContext &Context = F.getContext();
     std::vector<FuncValue> values;
     IRBuilder<> Builder(Context);
 
-    // Collect frequent paths
-    std::set<BasicBlock *> FrequentPaths;
-    std::map<BasicBlock *, float> BranchFrequencies;
-
-    for (auto &BB : F) {
-      if (auto *BI = dyn_cast<BranchInst>(BB.getTerminator())) {
-        for (unsigned i = 0; i < BI->getNumSuccessors(); ++i) {
-          BasicBlock *Succ = BI->getSuccessor(i);
-          BranchProbability Prob = BPI.getEdgeProbability(&BB, Succ);
-          if (Prob >= BranchProbability::getBranchProbability(8, 10)) {
-            FrequentPaths.insert(Succ);
-            BranchFrequencies[Succ] =
-                static_cast<float>(Prob.getNumerator()) / Prob.getDenominator();
-          }
-        }
-      }
+    // Calculate block profile count
+    uint64_t total_block_count = 0;
+    std::map<BasicBlock *, uint64_t> block_count;
+    for(auto &BB : F) {
+      uint64_t bb_profile_count = bfi.getBlockProfileCount(&BB).value_or(0);
+      total_block_count += bb_profile_count;
+      block_count[&BB] = bb_profile_count;
     }
 
     // Analyze allocations and uses
@@ -86,7 +78,8 @@ public:
               if (int Depth = LI.getLoopDepth(Store->getParent())) {
                 Val.uses += 15 * Depth * Depth;
               }
-              Val.uses *= BranchFrequencies[&BB];
+
+              Val.uses *= float(block_count[&BB])/total_block_count;
             }
           }
         }
