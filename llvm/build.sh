@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mkdir -p ../build/
-cd ../build/
-cmake ../llvm
+mkdir -p ../llvm/build/
+cd ../llvm/build/
+cmake ../
 make

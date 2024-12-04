@@ -20,26 +20,19 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-//#include "library/llama.h"
 #include <string.h>
 #include <time.h>
 
-void logo(void);
 int main(void)
 {
-	//ariel_enable();
-	logo();
 	int *var1 = malloc(sizeof(int)* SIZE_OF_MEM_WASTER);
-	
 	int i;
 
 	/* Set each value of the array */
 	for(i = 0; i < SIZE_OF_MEM_WASTER; i++)
 	{
 		var1[i] = i;
-	//	printf("%d\n", var1[i]);
 	}
-	//printf("Done!\n");
 
 
 	/*  Check each value of the array */

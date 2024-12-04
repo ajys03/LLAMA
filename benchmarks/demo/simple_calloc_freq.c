@@ -46,7 +46,7 @@ int main(void)
 	char true = 1;
 	for(i = 0; i < SIZE_OF_MEM_WASTER; i++)
 	{
-		if(var1[i] > 90 )
+		if(var1[i] > 2000 )
 		{
 			int *var2 = calloc(sizeof(int), 10);
 			for (i = 0; i < 10; i++) {
