@@ -915,6 +915,11 @@ CMakeFiles/llamaPass.dir/llama.o: \
   /opt/homebrew/opt/llvm/include/llvm/Support/raw_ostream.h \
   /opt/homebrew/opt/llvm/include/llvm/Support/TypeName.h \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk/usr/include/c++/v1/list \
+  /opt/homebrew/opt/llvm/include/llvm-c/Core.h \
+  /opt/homebrew/opt/llvm/include/llvm-c/Deprecated.h \
+  /opt/homebrew/opt/llvm/include/llvm-c/ErrorHandling.h \
+  /opt/homebrew/opt/llvm/include/llvm-c/ExternC.h \
+  /opt/homebrew/opt/llvm/include/llvm-c/Types.h \
   /opt/homebrew/opt/llvm/include/llvm/Analysis/BlockFrequencyInfo.h \
   /opt/homebrew/opt/llvm/include/llvm/Pass.h \
   /opt/homebrew/opt/llvm/include/llvm/PassAnalysisSupport.h \
@@ -931,7 +936,6 @@ CMakeFiles/llamaPass.dir/llama.o: \
   /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.5.sdk/usr/include/c++/v1/shared_mutex \
   /opt/homebrew/opt/llvm/include/llvm/Support/Error.h \
   /opt/homebrew/opt/llvm/include/llvm-c/Error.h \
-  /opt/homebrew/opt/llvm/include/llvm-c/ExternC.h \
   /opt/homebrew/opt/llvm/include/llvm/ADT/Twine.h \
   /opt/homebrew/opt/llvm/include/llvm/Support/Debug.h \
   /opt/homebrew/opt/llvm/include/llvm/Support/ErrorOr.h \
@@ -941,7 +945,6 @@ CMakeFiles/llamaPass.dir/llama.o: \
   /opt/homebrew/opt/llvm/include/llvm/Analysis/BranchProbabilityInfo.h \
   /opt/homebrew/opt/llvm/include/llvm/ADT/DenseSet.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/BasicBlock.h \
-  /opt/homebrew/opt/llvm/include/llvm-c/Types.h \
   /opt/homebrew/opt/llvm/include/llvm/ADT/ilist.h \
   /opt/homebrew/opt/llvm/include/llvm/ADT/simple_ilist.h \
   /opt/homebrew/opt/llvm/include/llvm/ADT/ilist_base.h \
@@ -1019,6 +1022,7 @@ CMakeFiles/llamaPass.dir/llama.o: \
   /opt/homebrew/opt/llvm/include/llvm/Support/GenericDomTree.h \
   /opt/homebrew/opt/llvm/include/llvm/Support/CFGDiff.h \
   /opt/homebrew/opt/llvm/include/llvm/Support/CFGUpdate.h \
+  /opt/homebrew/opt/llvm/include/llvm/Analysis/MemoryLocation.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/IRBuilder.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/ConstantFolder.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/ConstantFold.h \
@@ -1035,6 +1039,7 @@ CMakeFiles/llamaPass.dir/llama.o: \
   /opt/homebrew/opt/llvm/include/llvm/Support/TrailingObjects.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/FPEnv.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/GlobalVariable.h \
+  /opt/homebrew/opt/llvm/include/llvm/IR/LegacyPassManager.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/Module.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/Comdat.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/GlobalAlias.h \
@@ -1055,7 +1060,6 @@ CMakeFiles/llamaPass.dir/llama.o: \
   /opt/homebrew/opt/llvm/include/llvm/ADT/SparseBitVector.h \
   /opt/homebrew/opt/llvm/include/llvm/CodeGen/MachineInstr.h \
   /opt/homebrew/opt/llvm/include/llvm/ADT/PointerSumType.h \
-  /opt/homebrew/opt/llvm/include/llvm/Analysis/MemoryLocation.h \
   /opt/homebrew/opt/llvm/include/llvm/CodeGen/MachineMemOperand.h \
   /opt/homebrew/opt/llvm/include/llvm/CodeGen/PseudoSourceValue.h \
   /opt/homebrew/opt/llvm/include/llvm/CodeGenTypes/LowLevelType.h \
@@ -1133,6 +1137,11 @@ CMakeFiles/llamaPass.dir/llama.o: \
   /opt/homebrew/opt/llvm/include/llvm/Transforms/Utils/ValueMapper.h \
   /opt/homebrew/opt/llvm/include/llvm/Passes/PassPlugin.h \
   /opt/homebrew/opt/llvm/include/llvm/Support/DynamicLibrary.h \
+  /opt/homebrew/opt/llvm/include/llvm/Transforms/Scalar.h \
+  /opt/homebrew/opt/llvm/include/llvm/Transforms/Utils/SimplifyCFGOptions.h \
+  /opt/homebrew/opt/llvm/include/llvm/Transforms/Scalar/IndVarSimplify.h \
+  /opt/homebrew/opt/llvm/include/llvm/Transforms/Scalar/LoopRotation.h \
+  /opt/homebrew/opt/llvm/include/llvm/Transforms/Scalar/LoopUnrollPass.h \
   /opt/homebrew/opt/llvm/include/llvm/Transforms/Utils/BasicBlockUtils.h \
   /opt/homebrew/opt/llvm/include/llvm/IR/Dominators.h \
   /opt/homebrew/opt/llvm/include/llvm/ADT/DepthFirstIterator.h \
