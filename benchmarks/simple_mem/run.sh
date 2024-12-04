@@ -34,7 +34,7 @@ clang -fprofile-instr-generate -fcoverage-mapping ${1}.prof.bc -o ${1}_prof
 # llvm-profdata merge -o ${1}.profdata default.profraw
 
 # # # The "Profile Guided Optimization Instrumentation-Use" pass attaches the profile data to the bc file.
-# opt -passes="pgo-instr-use" -o ${1}.profdata.bc -pgo-test-profile-file=${1}.profdata < ${1}.bc
+opt -passes="pgo-instr-use" -o ${1}.profdata.bc -pgo-test-profile-file=${1}.profdata < ${1}.bc
 
 # # Uncomment this and disable the cleanup if you want to "see" the instumented IR.
 #llvm-dis ${1}.profdata.bc -o ${1}.prof.ll
