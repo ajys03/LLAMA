@@ -60,7 +60,6 @@ funcValue *addFunc(funcValue *ptr, Value *func, Instruction *declaredOp,
   retFunc[iterator].declaredOp = declaredOp;
   retFunc[iterator].uses = 0;
   retFunc[iterator].id = iterator;
-  retFunc[iterator].BB = basic;
   iterator++;
 
   return retFunc;
@@ -110,58 +109,77 @@ public:
     funcValue value;
     IRBuilder<> builder(context);
     Instruction *theOp;
+    /*
+// Collect frequent paths
+std::unordered_set<BasicBlock *> frequentPaths;
+std::unordered_map<BasicBlock *, float> branchFrequencies;
 
-    // Collect frequent paths
-    std::unordered_set<BasicBlock *> FrequentPaths;
-    std::unordered_map<BasicBlock *, float> BranchFrequencies;
-
-    for (auto &BB : F) {
-      if (auto *BI = dyn_cast<BranchInst>(BB.getTerminator())) {
-        for (unsigned i = 0; i < BI->getNumSuccessors(); ++i) {
-          BasicBlock *Succ = BI->getSuccessor(i);
-          BranchProbability Prob = BPI.getEdgeProbability(&BB, Succ);
-          if (Prob >= BranchProbability::getBranchProbability(8, 10)) {
-            FrequentPaths.insert(Succ);
-          }
-          /*errs() << static_cast<float>(Prob.getNumerator()) /
-                        Prob.getDenominator()
-                 << "\n";
-          BranchFrequencies[Succ] +=
-              static_cast<float>(Prob.getNumerator()) / Prob.getDenominator();*/
-        }
+for (auto &BB : F) {
+  if (auto *BI = dyn_cast<BranchInst>(BB.getTerminator())) {
+    for (unsigned i = 0; i < BI->getNumSuccessors(); ++i) {
+      BasicBlock *succ = BI->getSuccessor(i);
+      BranchProbability prob = BPI.getEdgeProbability(&BB, succ);
+      if (prob >= BranchProbability::getBranchProbability(8, 10)) {
+        frequentPaths.insert(succ);
+      }
+      errs() << static_cast<float>(Prob.getNumerator()) /
+                    Prob.getDenominator()
+             << "\n";
+      errs() << &succ << ":" << static_cast<float>(prob.getNumerator()) /
+              prob.getDenominator()
+       << "\n";
+      if (branchFrequencies.find(succ) == branchFrequencies.end()) {
+        branchFrequencies[succ] =
+            static_cast<float>(prob.getNumerator()) / prob.getDenominator();
+      } else {
+        branchFrequencies[succ] +=
+            static_cast<float>(prob.getNumerator()) / prob.getDenominator();
       }
     }
-    /*
+  }
+}
+// errs() << FrequentPaths.size() << "\n";
+*/
     // Calculate block profile count
     uint64_t total_block_count = 0;
     std::unordered_map<BasicBlock *, uint64_t> block_count;
-    for (auto &BB : F) {
-      uint64_t bb_profile_count =
-          BFI.getBlockProfileCount(&BB, false).value();
-      total_block_count += bb_profile_count;
-      //block_count[&BB] = bb_profile_count;
-      errs() << (bb_profile_count) << "\n";
-    }*/
+    std::unordered_set<BasicBlock *> visited;
 
+    for (auto &BB : F) {
+	  if(visited.find(&BB) != visited.end()){
+            continue;
+          }
+      uint64_t bb_profile_count = BFI.getBlockProfileCount(&BB).value_or(0);
+      total_block_count += bb_profile_count;
+      block_count[&BB] = bb_profile_count;
+      errs() << &BB <<": "<< block_count[&BB] << "\n";
+      visited.insert(&BB);
+    }
+
+    /* ||
+          (cast<CallInst>(I).getCalledFunction()->getName() ==
+           "_internal_calloc") ||
+          (cast<CallInst>(I).getCalledFunction()->getName() ==
+           "_internal_malloc") ||
+          (cast<CallInst>(I).getCalledFunction()->getName() ==
+           "_internal_realloc") ||
+          (cast<CallInst>(I).getCalledFunction()->getName() ==
+           "_internal__mm_malloc"))
+                   */
     for (auto &B : F) {
       for (auto &I : B) {
         auto op = &I;
         theOp = op;
         Value *retValue;
         if (isa<CallInst>(I)) {
-          if ((cast<CallInst>(I).getCalledFunction()->getName() == "calloc") ||
-              (cast<CallInst>(I).getCalledFunction()->getName() == "malloc") ||
-              (cast<CallInst>(I).getCalledFunction()->getName() == "realloc") ||
+          if ((cast<CallInst>(I).getCalledFunction()->getName() ==
+               "calloc") ||
               (cast<CallInst>(I).getCalledFunction()->getName() ==
-               "_mm_malloc") ||
+               "malloc") ||
               (cast<CallInst>(I).getCalledFunction()->getName() ==
-               "_internal_calloc") ||
+               "realloc") ||
               (cast<CallInst>(I).getCalledFunction()->getName() ==
-               "_internal_malloc") ||
-              (cast<CallInst>(I).getCalledFunction()->getName() ==
-               "_internal_realloc") ||
-              (cast<CallInst>(I).getCalledFunction()->getName() ==
-               "_internal__mm_malloc")) {
+               "_mm_malloc")) {
             IRBuilder<> builder(op);
             /*  For each allocation via calloc, malloc, realloc, get the
              *  insert point, the value (for the store ptr later),  */
@@ -174,18 +192,17 @@ public:
           Value *ptrOp = cast<StoreInst>(I).getPointerOperand();
 
           int pos = funcValExists(values, ValOp);
-          int val = 0;
+          long long val = 0;
           if (pos != -1) {
             for (auto U : ptrOp->users()) {
               values[pos].uses++;
               if (auto *I = dyn_cast<Instruction>(U)) {
                 int differential = 0, loopDepth = 0;
-                BasicBlock *BB;
                 if (int depth = LI.getLoopDepth(I->getParent())) {
                   loopDepth = depth;
                   differential = 15;
                   bool activate = false;
-                  BB = I->getParent();
+                  BasicBlock *BB = I->getParent();
                   for (auto &in : *BB) {
                     if (!activate && in.isIdenticalTo(I))
                       activate = true;
@@ -200,30 +217,43 @@ public:
                 val += pow(std::max(differential, 0), loopDepth * 2);
               }
             }
+            /*if (block_count[&B] != 0 && total_block_count != 0) {
+              errs() << "here\n";
+              errs() << float(block_count[&B]) << "\n";
+              val *=
+                  float(block_count[&B]) / total_block_count;
+            }*/
 
             /*  If we allocated the value referenced by the operand via
              * calloc, malloc, or realloc, count the number of times the
              * pointer operand is used */
+            errs() << "score: " << values[pos].uses << "\n";
             values[pos].uses += val;
+            errs() << "score1: " << values[pos].uses << "\n";
           }
         }
       }
     }
 
-    for (int i = 0; i < iterator; i++) {
-		if(FrequentPaths.find(values[i].BB) != FrequentPaths.end()){
-                  values[i].uses *= 100;
-                }
-
-      // values[i].uses *= float(block_count[values[i].BB]) / total_block_count;
+    for (int i = 0; i < 2; i++) {
+      /*errs() << "printing probability" << (branchFrequencies[values[i].BB])
+             << "\n";
+      values[i].uses *= branchFrequencies[values[i].BB];*/
+      if (block_count[values[i].BB] != 0 && total_block_count != 0) {
+        errs() << "here\n";
+        errs() << float(block_count[values[i].BB]) << "\n";
+        values[i].uses *= float(block_count[values[i].BB]) / total_block_count;
+      }
     }
 
     errs() << "ITERATOR " << iterator << "\n";
     for (int i = 0; i < 2; i++) {
-      errs() << i << '\n';
       errs() << "printing use" << (values[i].uses) << "\n";
       ;
     }
+    iterator = 0;
+    free(values);
+    values = (funcValue *)calloc(sizeof(funcValue), 1);
 
     /*
    Now we insert the uses..

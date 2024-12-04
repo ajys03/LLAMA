@@ -20,7 +20,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "library/llama.h"
+//#include "library/llama.h"
 #include <string.h>
 #include <time.h>
 

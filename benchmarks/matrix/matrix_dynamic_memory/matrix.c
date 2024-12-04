@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include "library/llama.h"
+//#include "library/llama.h"
 
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #define max(a, b) (((a) > (b)) ? (a) : (b)) 
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 {
 
 	//FILE *output = stdout;
-	ariel_enable();
+	//ariel_enable();
 //	struct matrix *a,*b;
 	int *a, *b;
 	int col1 = atoi(argv[1]), row1 = atoi(argv[2]);
