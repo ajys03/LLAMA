@@ -118,20 +118,26 @@ endif
 #===============================================================================
 # Targets to Build
 #===============================================================================
+# Paths and variables
+# CHANGE to your root directory
+ROOT_DIR=""
+LLVM_DIR="${ROOT_DIR}/llvm"
+BENCH_DIR="${ROOT_DIR}/benchmarks/demo"
+PATH2LIB="${LLVM_DIR}/build/libllamaPass.so"
 
 $(program): $(obj) SimpleMOC-kernel_header.h
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 0SimpleMOC $(LDFLAGS) library/0.a
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 10SimpleMOC $(LDFLAGS) library/10.a
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 100SimpleMOC $(LDFLAGS) library/100.a
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 1000SimpleMOC $(LDFLAGS) library/1000.a
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 10000SimpleMOC $(LDFLAGS) library/10000.a
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 20000SimpleMOC $(LDFLAGS) library/20000.a
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 30000SimpleMOC $(LDFLAGS) library/30000.a
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) $(obj) -o 40000SimpleMOC $(LDFLAGS) library/40000.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 0SimpleMOC $(LDFLAGS) library/0.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 10SimpleMOC $(LDFLAGS) library/10.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 100SimpleMOC $(LDFLAGS) library/100.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 1000SimpleMOC $(LDFLAGS) library/1000.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 10000SimpleMOC $(LDFLAGS) library/10000.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 20000SimpleMOC $(LDFLAGS) library/20000.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 30000SimpleMOC $(LDFLAGS) library/30000.a
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) $(obj) -o 40000SimpleMOC $(LDFLAGS) library/40000.a
 
 
 %.o: %.c
-	clang -Xclang -load -Xclang build/libllamaPass.so $(CFLAGS) -c $< -o $@ 
+	clang -Xclang -load -Xclang ${PATH2LIB} $(CFLAGS) -c $< -o $@ 
 
 clean:
 	rm -rf $(program) $(obj)

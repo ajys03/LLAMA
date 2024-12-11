@@ -6,7 +6,6 @@
 /*  Skeleton Author: Adrian Sampson 			*
  * Portions (C) 2015 and Licensed under the MIT License */
 
-#include "llvm/IR/PassManager.h"
 #include <cstdio>
 #include <llvm-c/Core.h>
 #include <llvm/Analysis/BlockFrequencyInfo.h>
@@ -18,6 +17,7 @@
 #include <llvm/IR/InstrTypes.h>
 #include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Pass.h>
 #include <llvm/Passes/PassBuilder.h>
@@ -243,7 +243,7 @@ for (auto &BB : F) {
               }
             }
             if (branchFrequencies[interest] != 0) {
-              //val *= branchFrequencies[interest];
+              // val *= branchFrequencies[interest];
               errs() << "branch frequency:" << branchFrequencies[interest]
                      << "\n";
             }
@@ -313,6 +313,8 @@ llvmGetPassPluginInfo() {
                 [](StringRef Name, FunctionPassManager &FPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
                   if (Name == "llama-pass") {
+                    FPM.addPass(
+                        createFunctionToLoopPassAdaptor(LoopRotatePass()));
                     FPM.addPass(llamaPass());
                     return true;
                   }

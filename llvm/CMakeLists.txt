@@ -13,7 +13,7 @@ find_package(LLVM REQUIRED CONFIG)
 target_include_directories(llamaPass PRIVATE ${LLVM_INCLUDE_DIR})
 target_link_libraries(llamaPass ${LLVM_LIBRARIES})
 
-# Use C++11 to compile our pass (i.e., supply -std=c++11).
+# Use C++17 to compile our pass (i.e., supply -std=c++17).
 target_compile_features(llamaPass PRIVATE cxx_std_17)
 
 # LLVM is (typically) built with no C++ RTTI. We need to match that;
@@ -29,4 +29,4 @@ if(APPLE)
         LINK_FLAGS "-undefined dynamic_lookup"
     )
 endif(APPLE)
-set_target_properties(llamaPass PROPERTIES COMPILE_FLAGS "-D__GLIBCXX_USE_CXX11_ABI=0 -fno-rtti" )
+set_target_properties(llamaPass PROPERTIES COMPILE_FLAGS "-D__GLIBCXX_USE_CXX17_ABI=0 -fno-rtti" )

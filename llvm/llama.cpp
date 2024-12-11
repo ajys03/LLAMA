@@ -6,7 +6,6 @@
 /*  Skeleton Author: Adrian Sampson 			*
  * Portions (C) 2015 and Licensed under the MIT License */
 
-#include "llvm/IR/PassManager.h"
 #include <cstdio>
 #include <llvm-c/Core.h>
 #include <llvm/Analysis/BlockFrequencyInfo.h>
@@ -16,8 +15,8 @@
 #include <llvm/IR/Function.h>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/InstrTypes.h>
-#include <llvm/IR/LegacyPassManager.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/PassManager.h>
 #include <llvm/IR/Value.h>
 #include <llvm/Pass.h>
 #include <llvm/Passes/PassBuilder.h>
@@ -100,69 +99,33 @@ public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
     LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
     BranchProbabilityInfo &BPI = FAM.getResult<BranchProbabilityAnalysis>(F);
-    BlockFrequencyAnalysis::Result &BFI =
-        FAM.getResult<BlockFrequencyAnalysis>(F);
+    BlockFrequencyAnalysis::Result &BFI = FAM.getResult<BlockFrequencyAnalysis>(F);
     LLVMContext &context = F.getContext();
     funcValue *values = (funcValue *)calloc(sizeof(funcValue), 1);
     funcValue value;
     IRBuilder<> builder(context);
     Instruction *theOp;
 
+    /*// Calculate block profile count
+    uint64_t total_block_count = 0;
+    std::unordered_map<BasicBlock *, uint64_t> block_count;
+    for (auto &BB : F) {
+      uint64_t bb_profile_count = BFI.getBlockProfileCount(&BB).value_or(0);
+      if (block_count.find(&BB) == block_count.end()) {
+        total_block_count += bb_profile_count;
+        errs() << "BB " << &BB << ":" << bb_profile_count << "\n";
+      }
+      block_count[&BB] = bb_profile_count;
+	  
+    }
+    errs() << "total block count" << total_block_count << "\n";
+	*/
+
     // Collect frequent paths
-    // std::unordered_set<BasicBlock *> frequentPaths;
     std::unordered_map<BasicBlock *, float> branchFrequencies;
     llvm::BasicBlock *entryBlock = &F.getEntryBlock();
     branchFrequencies[entryBlock] = 1;
-	/*
-    for (auto &BB : F) {
 
-      if (auto *BI = dyn_cast<BranchInst>(BB.getTerminator())) {
-        for (unsigned i = 0; i < BI->getNumSuccessors(); ++i) {
-          BasicBlock *succ = BI->getSuccessor(i);
-          BranchProbability prob = BPI.getEdgeProbability(&BB, succ);
-          branchFrequencies[succ] =
-              static_cast<float>(prob.getNumerator()) / prob.getDenominator();
-          if (branchFrequencies.find(succ) == branchFrequencies.end()) {
-            branchFrequencies[succ] =
-                static_cast<float>(prob.getNumerator()) / prob.getDenominator();
-            //errs() << succ << "1:" << branchFrequencies[succ] << "\n";
-          } else {
-            branchFrequencies[succ] +=
-                static_cast<float>(prob.getNumerator()) / prob.getDenominator();
-            //errs() << succ << "2:" << branchFrequencies[succ] << "\n";
-          }
-        }
-      }
-    }
-    // errs() << FrequentPaths.size() << "\n";
-
-        // Calculate block profile count
-        uint64_t total_block_count = 0;
-        std::unordered_map<BasicBlock *, uint64_t> block_count;
-        std::unordered_set<BasicBlock *> visited;
-
-        for (auto &BB : F) {
-              if(visited.find(&BB) != visited.end()){
-                continue;
-              }
-          uint64_t bb_profile_count = BFI.getBlockProfileCount(&BB).value_or(0);
-          total_block_count += bb_profile_count;
-          block_count[&BB] = bb_profile_count;
-          errs() << &BB <<": "<< block_count[&BB] << "\n";
-          visited.insert(&BB);
-        }
-
-    ||
-          (cast<CallInst>(I).getCalledFunction()->getName() ==
-           "_internal_calloc") ||
-          (cast<CallInst>(I).getCalledFunction()->getName() ==
-           "_internal_malloc") ||
-          (cast<CallInst>(I).getCalledFunction()->getName() ==
-           "_internal_realloc") ||
-          (cast<CallInst>(I).getCalledFunction()->getName() ==
-           "_internal__mm_malloc"))
-                   */
-        
     for (auto &B : F) {
       if (auto *BI = dyn_cast<BranchInst>(B.getTerminator())) {
         for (unsigned i = 0; i < BI->getNumSuccessors(); ++i) {
@@ -172,12 +135,10 @@ public:
           if (branchFrequencies.find(succ) == branchFrequencies.end()) {
             branchFrequencies[succ] =
                 static_cast<float>(prob.getNumerator()) / prob.getDenominator();
-            //errs() << succ << "1:" << branchFrequencies[succ] << "\n";
           } else {
             float temp = prob.getNumerator() / prob.getDenominator();
             if (branchFrequencies[succ] < temp) {
               branchFrequencies[succ] = temp;
-              //errs() << succ << "2:" << branchFrequencies[succ] << "\n";
             }
           }
         }
@@ -217,11 +178,6 @@ public:
               if (auto *I = dyn_cast<Instruction>(U)) {
                 int differential = 0, loopDepth = 0;
                 BB = I->getParent();
-                /*uint64_t bb_profile_count =
-                    BFI.getBlockProfileCount(BB).value_or(0);
-                total_block_count += bb_profile_count;
-                block_count[BB] = bb_profile_count;
-                errs() << BB << ": " << block_count[BB] << "\n";*/
                 if (int depth = LI.getLoopDepth(I->getParent())) {
                   loopDepth = depth;
                   differential = 15;
@@ -239,21 +195,18 @@ public:
                   int not_used = 0, used = 0;
                 }
                 val += pow(std::max(differential, 0), loopDepth * 2);
-                // errs() << "score: " << BB << ":" << val << "\n";
               }
             }
+			
             if (branchFrequencies[interest] != 0) {
               val *= branchFrequencies[interest];
               errs() << "branch frequency:" << branchFrequencies[interest]
                      << "\n";
             }
-
-            /*if (block_count[&B] != 0 && total_block_count != 0) {
-              errs() << "here\n";
-              errs() << float(block_count[&B]) << "\n";
-              val *=
-                  float(block_count[&B]) / total_block_count;
-            }*/
+            /*val *= float(block_count[interest]) / total_block_count;
+            errs() << "block frequency:"
+                   << interest << "-" << float(block_count[interest]) << "\n";
+			*/
 
             /*  If we allocated the value referenced by the operand via
              * calloc, malloc, or realloc, count the number of times the
@@ -269,6 +222,7 @@ public:
       errs() << "use" << i << ": " << (values[i].uses) << "\n";
       ;
     }
+
     iterator = 0;
     free(values);
     values = (funcValue *)calloc(sizeof(funcValue), 1);
@@ -313,7 +267,10 @@ llvmGetPassPluginInfo() {
                 [](StringRef Name, FunctionPassManager &FPM,
                    ArrayRef<PassBuilder::PipelineElement>) {
                   if (Name == "llama-pass") {
+                    FPM.addPass(
+                        createFunctionToLoopPassAdaptor(LoopRotatePass()));
                     FPM.addPass(llamaPass());
+
                     return true;
                   }
                   return false;

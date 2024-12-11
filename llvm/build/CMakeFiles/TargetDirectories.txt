@@ -1,0 +1,10 @@
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/llamaPass.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/llvm_bug_fix.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/intrinsics_gen.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/omp_gen.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/acc_gen.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/ARMTargetParserTableGen.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/AArch64TargetParserTableGen.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/RISCVTargetParserTableGen.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/edit_cache.dir
+/Users/annyw/Downloads/LLAMA-master/llvm/build/CMakeFiles/rebuild_cache.dir

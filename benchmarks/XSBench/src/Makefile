@@ -117,10 +117,10 @@ endif
 
 # 0.a  100000.a  10000.a  1000.a  100.a  10.a  20000.a  30000.a  40000.a
 $(program): $(obj) XSbench_header.h Makefile 
-	        LD_PRELOAD="../../../build/libllvm_bug_fix.so" clang -Xclang -load -Xclang ../../../build/libllamaPass.so $(CFLAGS) $(obj) -o XSBench $(LDFLAGS) ../../../library/build/llama.a
+	        LD_PRELOAD="../../../llvm/build/libllvm_bug_fix.so" clang -Xclang -load -Xclang ../../../llvm/build/libllamaPass.so $(CFLAGS) $(obj) -o XSBench $(LDFLAGS) ../../../library/build/llama.a
 
 %.o: %.c
-	        LD_PRELOAD="../../../build/libllvm_bug_fix.so" clang -I../../../library/ -Xclang -load -Xclang ../../../build/libllamaPass.so $(CFLAGS) -c $< -o $@ 
+	        LD_PRELOAD="../../../llvm/build/libllvm_bug_fix.so" clang -I../../../library/ -Xclang -load -Xclang ../../../llvm/build/libllamaPass.so $(CFLAGS) -c $< -o $@ 
 
 clean:
 	rm -rf $(program) $(obj)

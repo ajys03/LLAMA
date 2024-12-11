@@ -1,0 +1,32 @@
+Authors: Group 14 - Ibrahim Alnassar, Alex Ji, Anny Wu, Brian Wu, Emily Yuan
+
+Paper: https://github.com/derrickgreenspan/LLAMA/raw/master/llama.pdf
+
+How to build:
+	Prerequisites:
+	The LLVM pass is built with clang 19.1.4
+
+	To build the llvm pass, simply do the following:
+		1. Go to the llvm directory
+		2. Run ./build.sh 
+	To build the library, simply do the following:
+		1. Go to the library directory
+		2. Run make
+		3. Run cp build/llama.a .  
+
+	To build the benchmarks, simply do the following:
+		For the two simple benchmarks (Matrix Multiplication and Memory Allocator), run ./build.sh in their folders.
+		
+
+How to run and reproduce results: 
+	1. Go to the demo directory
+	2. Run sh run.sh
+	3. Run sh run-original.sh
+	
+
+
+
+Abstract: 
+LLAMA is an LLVM pass and library for automatically determining memory allocations \cite{paper}.  The idea was born out of the potential to optimize memory usage for multi-level memories. However, the current LLAMA is significantly outdated, relying on Clang 4.0, GCC 7.1.0, and Intel PIN 2.14. This creates barriers to maintainability and extensibility. Alongside these outdated functions, the LLAMA code is redundant and faulty. As a group, we address these issues from resolving compilation issues to removing deprecated components. 
+
+In addition to these outdated functions, the current LLAMA's LLVM pass scores memory allocation operations based on static factors like instruction counts and loop depths. As such, we hope to increase the memory management efficiency by incorporating branch frequency and basic block profiling data into the scoring mechanism. Our results show the differences between the scores for each memory allocation using the original pass vs. our updated pass. The score for each memory allocation using the updated pass is calculated by multiplying the original score by the branch probability for the basic block containing the memory allocation function call.
