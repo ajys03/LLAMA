@@ -99,7 +99,8 @@ public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &FAM) {
     LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
     BranchProbabilityInfo &BPI = FAM.getResult<BranchProbabilityAnalysis>(F);
-    BlockFrequencyAnalysis::Result &BFI = FAM.getResult<BlockFrequencyAnalysis>(F);
+    BlockFrequencyAnalysis::Result &BFI =
+        FAM.getResult<BlockFrequencyAnalysis>(F);
     LLVMContext &context = F.getContext();
     funcValue *values = (funcValue *)calloc(sizeof(funcValue), 1);
     funcValue value;
@@ -116,10 +117,10 @@ public:
         errs() << "BB " << &BB << ":" << bb_profile_count << "\n";
       }
       block_count[&BB] = bb_profile_count;
-	  
+
     }
     errs() << "total block count" << total_block_count << "\n";
-	*/
+        */
 
     // Collect frequent paths
     std::unordered_map<BasicBlock *, float> branchFrequencies;
@@ -159,9 +160,10 @@ public:
              *  insert point, the value (for the store ptr later),  */
             interest = I.getParent();
             values = addFunc(values, &(cast<Value>(I)), op);
-            // errs() << interest << ":" << I << "\n";
           }
-        } /* After a call inst, a store inst is performed. */
+        }
+
+        /* After a call inst, a store inst is performed. */
         if (isa<StoreInst>(I)) {
           Value *ValOp = cast<StoreInst>(I).getValueOperand();
           Value *ptrOp = cast<StoreInst>(I).getPointerOperand();
@@ -197,7 +199,7 @@ public:
                 val += pow(std::max(differential, 0), loopDepth * 2);
               }
             }
-			
+
             if (branchFrequencies[interest] != 0) {
               val *= branchFrequencies[interest];
               errs() << "branch frequency:" << branchFrequencies[interest]
@@ -206,7 +208,7 @@ public:
             /*val *= float(block_count[interest]) / total_block_count;
             errs() << "block frequency:"
                    << interest << "-" << float(block_count[interest]) << "\n";
-			*/
+                              */
 
             /*  If we allocated the value referenced by the operand via
              * calloc, malloc, or realloc, count the number of times the
@@ -223,12 +225,14 @@ public:
       ;
     }
 
+    //Patch code for not using the library
     iterator = 0;
     free(values);
     values = (funcValue *)calloc(sizeof(funcValue), 1);
 
-    /*
-   Now we insert the uses..
+  /*
+  //Commenting out this section since we are not connected to library
+  //Now we insert the uses..
 
   int i;
   for (i = 0; i < iterator; i++) {
